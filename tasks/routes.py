@@ -21,19 +21,70 @@ def renameFiles(DATOS, COPIA):
     os.remove(DATOS)
     os.rename(COPIA, DATOS)
 
-
-@app.route("/")
-def index():
+def todasTareas():
     fOpen = open('./data/tareas.dat', 'r')
-
     cvsreader = csv.reader(fOpen, delimiter=',', quotechar='"')
-
     registros= []
-
     for linea in cvsreader:
         registros.append(linea)
     
     fOpen.close()
+
+    return registros
+
+def addTask(title, desc, fx):
+    fDatos = open('./data/tareas.dat','a')
+    csvwiter = csv.writer(fDatos, delimiter=',', quotechar='"')
+    csvwiter.writerow((title, desc, fx))
+    fDatos.close()
+
+def leeTask(ix):
+    fOpen = open('./data/tareas.dat', 'r')
+    cvsreader = csv.reader(fOpen, delimiter=',', quotechar='"')
+
+    registroAct = None
+
+    for ilinea, linea in enumerate(cvsreader, start=1):
+        if ilinea == int(ix):
+            registroAct = linea
+            break
+
+        ilinea += 1
+    
+    return registroAct
+
+def proTask(ix, borra=False):
+    fOriginal = open('./data/tareas.dat', 'r')
+    fCopy = open('./data/copy.dat', 'w')
+
+    cvsreader = csv.reader(fOriginal, delimiter=',', quotechar='"')
+
+    for ilinea, linea in enumerate(cvsreader, start=1):
+        csvwiter = csv.writer(fCopy, delimiter=',', quotechar='"')
+
+        if int(ix) == ilinea:
+            if not borra:
+                title = request.values.get('title')
+                desc = request.values.get('description')
+                fx = request.values.get('fx')
+                csvwiter.writerow((title, desc, fx))
+        else:
+            title = linea[0]
+            desc = linea[1]
+            fx = linea[2]
+            csvwiter.writerow((title, desc, fx))
+
+    fCopy.close()
+    fOriginal.close()
+
+    os.remove('./data/tareas.dat')
+    os.rename('./data/copy.dat','./data/tareas.dat')
+
+
+@app.route("/")
+def index():
+    registros = todasTareas()
+
     return render_template("index.html", registros=registros)
 
 
@@ -45,16 +96,12 @@ def newTask():
         return render_template("task.html", form=form)
     
     if form.validate():
-        fDatos = open('./data/tareas.dat','a')
-        csvwiter = csv.writer(fDatos, delimiter=',', quotechar='"')
-
         title = request.values.get('title')
         desc = request.values.get('description')
         fx = request.values.get('fx')
-        csvwiter.writerow((title, desc, fx))
 
-        fDatos.close()
-
+        addTask(title, desc, fx)
+    
         return redirect(url_for('index'))#Va a redirigir a index.
     else:
         return render_template("task.html", form=form)
@@ -64,20 +111,9 @@ def processTask():
     form = ProcessTaskForm(request.form)
 
     if request.method == 'GET':
-        fOpen = open('./data/tareas.dat', 'r')
-        cvsreader = csv.reader(fOpen, delimiter=',', quotechar='"')
-
-        registroAct = None
-        ilinea=1
-
         ix = request.values.get('ix')
         if ix:
-            for linea in cvsreader:
-                if ilinea == int(ix):
-                    registroAct = linea
-                    break
-
-                ilinea += 1
+            registroAct = leeTask(ix)
 
             if registroAct:
                 if registroAct[2]:
@@ -99,61 +135,16 @@ def processTask():
             return redirect(url_for('index'))
 
     if form.btn.data == 'B':    
-            
-        fOriginal = open('./data/tareas.dat', 'r')
-        fCopy = open('./data/copy.dat', 'w')
-
-
-        cvsreader = csv.reader(fOriginal, delimiter=',', quotechar='"')
-
         ix = request.values.get('ix')
+        processTask(ix, True)
 
-        for ilinea, linea in enumerate(cvsreader, start=1):
-                
-            csvwiter = csv.writer(fCopy, delimiter=',', quotechar='"')
-
-            if int(ix) == ilinea:
-                continue
-
-            title = linea[0]
-            desc = linea[1]
-            fx = linea[2]
-            csvwiter.writerow((title, desc, fx))
-
-        fCopy.close()
-        fOriginal.close()
-
-        os.remove('./data/tareas.dat')
-        os.rename('./data/copy.dat','./data/tareas.dat')
-        
         return redirect(url_for('index'))
                 
     if form.btn.data == 'M':
         if form.validate():
-            fOriginal = open('./data/tareas.dat', 'r')
-            fCopy = open('./data/copy.dat', 'w')
-
-            cvsreader = csv.reader(fOriginal, delimiter=',', quotechar='"')
-
             ix = request.values.get('ix')
+            processTask(ix)
 
-            for ilinea, linea in enumerate(cvsreader, start=1):    
-                csvwiter = csv.writer(fCopy, delimiter=',', quotechar='"')
-
-                if int(ix) == ilinea:
-                    title = request.values.get('title')
-                    desc = request.values.get('description')
-                    fx = request.values.get('fx')
-                    csvwiter.writerow((title, desc, fx))
-                else:
-                    title = linea[0]
-                    desc = linea[1]
-                    fx = linea[2]
-                    csvwiter.writerow((title, desc, fx))
-                pass
-
-            os.remove('./data/tareas.dat')
-            os.rename('./data/copy.dat','./data/tareas.dat')
         return redirect(url_for('index'))
 
     return render_template("processtask.html", form=form)
