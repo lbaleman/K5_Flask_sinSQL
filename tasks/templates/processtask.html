@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+
+
+{% block title %} Procesar tarea {% endblock %}
+
+
+{% block content %} 
+    {% if form.btn.data == 'M' %}
+        <h1>Modificar Tarea</h1>
+    {% endif %}
+    {% if form.btn.data == 'B' %}
+        <h1>Borrar Tarea</h1>
+    {% endif %}
+    <form action="/processtask" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="row">
+            {{ form.ix(class="u-full-width") }}
+            {{ form.btn(class="u-full-width") }}
+        </div>
+        <div class="row">
+            <div class="eight columns">
+                {{ form.title(class="u-full-width", placeholder="Título")}}
+                <!--input class="u-full-width" type="text" name="title" placeholder="Título"-->
+                {% if form.title.errors %}
+                    {% for error in form.title.errors %}
+                        <p class="field-error">{{error}}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="four columns">
+                {{ form.fx(class="u-full-width", type="date")}}
+                <!--input class="u-full-width" type="date" name="date"-->
+                {% if form.fx.errors %}
+                    {% for error in form.fx.errors %}
+                        <p class="field-error">{{error}}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            {{ form.description(class="u-full-width", placeholder="Descripción")}}
+            <!--textarea class="u-full-width" type="text" name="desc" placeholder="Descripción"></textarea-->
+            {% if form.description.errors %}
+                    {% for error in form.description.errors %}
+                        <p class="field-error">{{error}}</p>
+                    {% endfor %}
+                {% endif %}
+        </div>
+        {{ form.submit(class="button-primary") }}
+        <!--input type="submit" value="Enviar"-->
+    </form>
+{% endblock %}

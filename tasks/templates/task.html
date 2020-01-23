@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %} Nueva tarea {% endblock %}
+
+{% block content %} 
+    <h1>Nueva Tarea</h1>
+    <form action="/newTask" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="row">
+            <div class="eight columns">
+                {{ form.title(class="u-full-width", placeholder="Título")}}
+                <!--input class="u-full-width" type="text" name="title" placeholder="Título"-->
+                {% if form.title.errors %}
+                    {% for error in form.title.errors %}
+                        <p class="field-error">{{error}}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <div class="four columns">
+                {{ form.fx(class="u-full-width", type="date")}}
+                <!--input class="u-full-width" type="date" name="date"-->
+                {% if form.fx.errors %}
+                    {% for error in form.fx.errors %}
+                        <p class="field-error">{{error}}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            {{ form.description(class="u-full-width", placeholder="Descripción")}}
+            <!--textarea class="u-full-width" type="text" name="desc" placeholder="Descripción"></textarea-->
+            {% if form.description.errors %}
+                    {% for error in form.description.errors %}
+                        <p class="field-error">{{error}}</p>
+                    {% endfor %}
+                {% endif %}
+        </div>
+        <input type="submit" value="Enviar">
+    </form>
+{% endblock %}
